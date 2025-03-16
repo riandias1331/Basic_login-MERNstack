@@ -1,47 +1,66 @@
-const User = require('../models/User.js')
+const User = require("../models/User.js");
+const bcrypt = require("bcrypt");
 
-exports.getUsers = async(req, res) => {
-    try {
-        const users = await User.find()
-        res.status(200).json(users)
-    } catch (error) {
-        res.status(400).json({ message: message.error })
-    }
-}   
+// exports.renderHome = (req, res) => {
+//   res.render('home.html')
+// };
 
-exports.createUsers = async(req, res) => {
-    try {
-        const { name, email, password } = req.body
-        const user = await User.create({
-            name,
-            email,
-            password
-        })
-        res.status(201).json(user)
-    } catch (error) {
-        res.status(400).json({ message: message.error })
-    }
-}
-exports.updateUsers = async(req, res) => {
-    try {
-        const userId = req.params.id
-        const updateUser = req.body
-        const user = await User.findByIdAndUpdate(userId, updateUser, { new: true })
-        res.status(400).json({ message: "Usuário não encontrado"})
-    } catch (error) {
-        res.status(400).json({ message: message.error })
-    }
-}
-exports.deleteUsers = async(req, res) => {
-    try {
-        const userId = req.params.id
-        const user = await User.findByIdAndDelete(userId)
+// exports.getregister = (req, res) => {
+//   res.render('register')
+// }
+// exports.getlogin = (req, res) => {
+//   res.render('login')
+// }
 
-        if(!user){
-            res.status(400).json({ message: "Usuário não encontrado"})
-        }
-        res.status(200).json({ message: "Usuário deletado"})
-    } catch (error) {
-        
+exports.register = async (req, res) => {
+  try {
+    const { email, password } = req.body
+
+    const salt = await bcrypt.genSalt(10); 
+    const hashPassword = await bcrypt.hash(password, salt); 
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).render('register', { error: 'Email já está em uso' });
     }
-}
+
+    const user = await User.create({
+      email,
+      password: hashPassword
+    })
+    console.log(user)
+    // res.status(201).json(user)
+    res.status(201).render('login');
+  } catch (error) {
+    res.status(400).json({ messaege: error.messaege })
+  }
+};
+
+
+exports.login = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      
+  
+      const user = await User.findOne({ email });
+      if (!user) {
+        console.log('email inválido')
+        return res.status(400).render('login', { error: 'Usuário não encontrado' });
+      }
+  
+      
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+ 
+      if (!isPasswordValid) {
+        console.log('Senha inválida')
+        return res.status(400).render('login', { error: 'Senha inválida' });
+      }
+  
+      console.log('Login bem-sucedido:', user);
+      res.status(200).render('Page'); 
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+
+};

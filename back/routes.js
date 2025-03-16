@@ -1,11 +1,13 @@
-const express = require('express')
-const route = express.Router()
+const express = require("express");
+const router = express.Router();
+const Controller = require("./src/controllers/homeController.js")
 
-const controller = require('./src/controllers/homeController.js')
+// Rotas
+// router.get("/", Controller.renderHome);
+// router.get("/login", Controller.getlogin);
+// router.get("/register", Controller.getregister);
 
-route.get('/users', controller.getUsers)
-route.post('/users', controller.createUsers)
-route.put('/users/:id', controller.updateUsers)
-route.delete('/users/:id', controller.deleteUsers)
+router.post("/register", Controller.register);
+router.post("/login", Controller.login);
 
-module.exports = route
+module.exports = router;
